@@ -1,0 +1,177 @@
+.sign-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f3f4f6;
+}
+
+.progress-bar {
+  background: white;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.progress-text {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.progress-track {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.3s;
+}
+
+.document-viewer {
+  flex: 1;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+.page {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto 24px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.page-image {
+  display: block;
+  width: 100%;
+}
+
+.field {
+  position: absolute;
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px solid #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.field-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 4px 8px;
+  background: white;
+  font-size: 14px;
+}
+
+.sign-btn {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.sign-btn.signed {
+  background: #f0fdf4;
+  border-color: #10b981;
+}
+
+.signature-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.finish-bar {
+  background: white;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  position: sticky;
+  bottom: 0;
+  text-align: center;
+}
+
+.finish-btn {
+  padding: 12px 48px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.finish-btn:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+.success-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+}
+
+.success-card {
+  background: white;
+  padding: 64px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #10b981;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  margin: 0 auto 24px;
+}
+
+.success-card h2 {
+  margin: 0 0 8px 0;
+  color: #111827;
+}
+
+.success-card p {
+  color: #6b7280;
+  margin: 0 0 24px 0;
+}
+
+.download-btn {
+  padding: 12px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .document-viewer {
+    padding: 20px 10px;
+  }
+  
+  .page {
+    margin-bottom: 16px;
+  }
+}

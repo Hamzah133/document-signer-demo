@@ -1,0 +1,62 @@
+<div class="sign-container" *ngIf="!completed">
+  <div class="progress-bar">
+    <div class="progress-text">{{ completedFields }} of {{ totalFields }} fields completed</div>
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="(completedFields / totalFields) * 100"></div>
+    </div>
+  </div>
+
+  <div class="document-viewer">
+    <div *ngFor="let page of document?.pages" class="page">
+      <img [src]="page.imageUrl" class="page-image" />
+      
+      <div *ngFor="let field of document?.fields" 
+           [hidden]="field.pageNumber !== page.pageNumber"
+           class="field"
+           [style.left.%]="field.x"
+           [style.top.%]="field.y"
+           [style.width.px]="field.width"
+           [style.height.px]="field.height">
+        
+        <input *ngIf="field.type === 'TEXT'" 
+               [(ngModel)]="field.value" 
+               placeholder="Type here..."
+               class="field-input" />
+        
+        <input *ngIf="field.type === 'DATE'" 
+               [(ngModel)]="field.value" 
+               type="date"
+               class="field-input" />
+
+        <button *ngIf="field.type === 'SIGNATURE' || field.type === 'INITIALS'"
+                (click)="openSignature(field)"
+                class="sign-btn"
+                [class.signed]="field.value">
+          <img *ngIf="field.value" [src]="field.value" class="signature-img" />
+          <span *ngIf="!field.value">{{ field.type === 'SIGNATURE' ? '✍️ Click to Sign' : 'Click for Initials' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="finish-bar">
+    <button (click)="finish()" [disabled]="!canFinish" class="finish-btn">
+      {{ canFinish ? 'Finish Signing' : 'Complete all required fields' }}
+    </button>
+  </div>
+</div>
+
+<div class="success-screen" *ngIf="completed">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <h2>Document Signed Successfully!</h2>
+    <p>You can download or close this tab now.</p>
+    <button (click)="downloadPdf()" class="download-btn">Download PDF</button>
+  </div>
+</div>
+
+<app-signature-modal 
+  *ngIf="showSignatureModal"
+  (signatureSaved)="onSignatureSaved($event)"
+  (closed)="showSignatureModal = false">
+</app-signature-modal>

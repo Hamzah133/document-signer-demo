@@ -1,5 +1,64 @@
-<h1>Welcome to document sign</h1>
-<hr>
-<ngx-extended-pdf-viewer
-  [src]="'pdfs/lorem-ipsum.pdf'"
-  [height]="'90vh'"></ngx-extended-pdf-viewer>
+<div class="main-container">
+  
+  <div class="sidebar" *ngIf="isDesignerMode && !isCompleted">
+    <h3>Add Fields</h3>
+    <div class="field-buttons">
+      <button (click)="addField('SIGNATURE')">+ Signature</button>
+      <button (click)="addField('TEXT')">+ Text</button>
+      <button (click)="addField('DATE')">+ Date</button>
+      <button (click)="addField('INITIALS')">+ Initials</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="toolbar">
+      <button (click)="backToDashboard()" class="back-btn">← Dashboard</button>
+      <input type="file" (change)="onFileSelected($event)" accept=".pdf" *ngIf="isDesignerMode && !isCompleted" />
+      <button class="toggle-btn" (click)="toggleMode()" *ngIf="!isCompleted">
+        {{ isDesignerMode ? 'Preview' : 'Edit' }}
+      </button>
+      <button *ngIf="isDesignerMode && document?.pages?.length && !isCompleted" (click)="openSendModal()" class="send-btn">Share Link</button>
+      <button *ngIf="document?.pages?.length" (click)="downloadPdf()" class="send-btn">Download PDF</button>
+      <span *ngIf="isCompleted" class="completed-badge">✓ Completed</span>
+    </div>
+
+    <div class="document-scroller">
+      <div *ngFor="let page of document?.pages" class="page-container">
+        <img [src]="page.imageUrl" class="page-image">
+
+        <ng-container *ngFor="let field of document?.fields">
+          <div *ngIf="field.pageNumber === page.pageNumber"
+               class="field-box"
+               [cdkDragDisabled]="!isDesignerMode || isCompleted"
+               cdkDrag
+               (cdkDragEnded)="onDragEnd($event, field)"
+               [style.left.%]="field.x"
+               [style.top.%]="field.y"
+               [style.width.px]="field.width"
+               [style.height.px]="field.height"
+               [style.border-color]="getRecipient(field.recipientId)?.color">
+               
+            <button *ngIf="isDesignerMode && !isCompleted" class="field-delete" (click)="docService.removeField(field.id)">×</button>
+            
+            <span *ngIf="isDesignerMode && !isCompleted" class="field-label">
+              {{ field.type }}
+            </span>
+
+            <!-- Preview/Completed mode - show values -->
+            <div *ngIf="!isDesignerMode || isCompleted" class="field-value">
+              <img *ngIf="(field.type === 'SIGNATURE' || field.type === 'INITIALS') && field.value" 
+                   [src]="field.value" class="signature-img" />
+              <span *ngIf="field.type === 'TEXT' || field.type === 'DATE'">{{ field.value || '(empty)' }}</span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-signature-modal 
+  *ngIf="showSignatureModal"
+  (signatureSaved)="onSignatureSaved($event)"
+  (closed)="showSignatureModal = false">
+</app-signature-modal>

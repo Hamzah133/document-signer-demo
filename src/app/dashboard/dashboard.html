@@ -1,0 +1,32 @@
+<div class="dashboard">
+  <div class="header">
+    <h1>My Documents</h1>
+    <button class="create-btn" (click)="createNew()">+ New Document</button>
+  </div>
+
+  <div class="document-grid">
+    <div *ngFor="let doc of documents" class="document-card" (click)="openDocument(doc)">
+      <div class="document-preview">
+        <img *ngIf="doc.pages[0]" [src]="doc.pages[0].imageUrl" alt="Preview" />
+        <div *ngIf="!doc.pages[0]" class="no-preview">No Preview</div>
+      </div>
+      <div class="document-info">
+        <h3>{{ doc.name }}</h3>
+        <div class="meta">
+          <span class="status" [class]="doc.status">{{ doc.status }}</span>
+          <span class="date">{{ doc.createdAt | date:'short' }}</span>
+        </div>
+        <div class="recipients">
+          <span *ngFor="let recipient of doc.recipients" class="recipient-badge" [style.background]="recipient.color">
+            {{ recipient.name }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="documents.length === 0" class="empty-state">
+    <p>No documents yet</p>
+    <button (click)="createNew()">Create your first document</button>
+  </div>
+</div>
