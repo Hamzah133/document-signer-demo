@@ -1,59 +1,133 @@
-# DocumentSigner
+# Document Signer
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.3.
+A web-based document signing application similar to DocuSign/Zoho Sign. Upload PDFs, add signature/text fields, share signing links, and download signed documents.
 
-## Development server
+## Quick Start
 
-To start a local development server, run:
-
+### 1. Backend (Flask)
 ```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+Backend runs on `http://localhost:5000`
+
+### 2. Frontend (Angular)
+```bash
+npm install
 ng serve
 ```
+Frontend runs on `http://localhost:4200`
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## How It Works
 
-## Code scaffolding
+### For Document Creators:
+1. **Dashboard** (`/`) - View all documents
+2. **Upload PDF** - Click "New Document" and upload
+3. **Add Fields** - Click field buttons (Signature, Text, Date, Initials)
+4. **Position Fields** - Drag fields to correct positions
+5. **Share Link** - Click "Share Link" to copy signing URL
+6. **View Signed** - Completed docs show with signatures embedded
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### For Signers:
+1. **Open Link** - Click the signing link received
+2. **Fill Fields** - Type in text boxes, select dates
+3. **Sign** - Click signature fields to draw signature
+4. **Finish** - Click "Finish Signing" when done
+5. **Download** - Download the signed document
 
-```bash
-ng generate component component-name
+## Features
+
+✅ PDF upload and rendering to images  
+✅ Drag & drop field positioning  
+✅ 4 field types (Signature, Text, Date, Initials)  
+✅ Canvas-based signature drawing  
+✅ No login required for signers  
+✅ Auto-save to backend  
+✅ Signatures burned into PDF images  
+✅ Download signed documents  
+✅ Status tracking (Draft → Sent → Completed)  
+✅ Mobile-responsive signing page  
+
+## Project Structure
+
+```
+document-signer/
+├── backend/
+│   ├── app.py              # Flask API
+│   ├── requirements.txt    # Python dependencies
+│   ├── uploads/            # Uploaded PDFs
+│   └── data/               # Document JSON files
+├── src/app/
+│   ├── dashboard/          # Document list
+│   ├── home/               # Editor (creator view)
+│   ├── sign/               # Signing page (signer view)
+│   ├── components/
+│   │   └── signature-modal/  # Signature drawing
+│   ├── services/
+│   │   ├── api.service.ts     # Backend API
+│   │   └── document.service.ts # State management
+│   └── models/
+│       └── document.model.ts  # Data models
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## API Endpoints
 
-```bash
-ng generate --help
+```
+GET    /api/documents          # List all documents
+GET    /api/documents/:id      # Get specific document
+POST   /api/documents          # Create new document
+PUT    /api/documents/:id      # Update document
+POST   /api/upload             # Upload PDF file
 ```
 
-## Building
+## Tech Stack
 
-To build the project run:
+**Frontend:**
+- Angular 19
+- Angular CDK (Drag & Drop)
+- PDF.js (PDF rendering)
+- TypeScript
 
-```bash
-ng build
-```
+**Backend:**
+- Flask (Python)
+- Flask-CORS
+- JSON file storage
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Key Concepts
 
-## Running unit tests
+### Document Flow
+1. **Draft** - Creator is editing
+2. **Sent** - Shared with signer
+3. **Completed** - Signer finished, signatures burned in
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Signature Burning
+When a signer completes a document, signatures and text are drawn directly onto the PDF page images using HTML Canvas. This creates a permanent, flattened version that can't be edited.
 
-```bash
-ng test
-```
+### No Authentication for Signers
+Signers access documents via unique URLs (e.g., `/sign/abc123`). No account or login required - just click and sign.
 
-## Running end-to-end tests
+## Development Notes
 
-For end-to-end (e2e) testing, run:
+- PDFs are converted to images at 2x scale for quality
+- Field positions stored as percentages for responsive layout
+- Auto-save on every change
+- Default recipient created automatically
+- Completed documents are read-only
 
-```bash
-ng e2e
-```
+## Future Enhancements
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- Multi-page field assignment
+- Field resizing
+- Email notifications
+- PDF merging (proper PDF output instead of images)
+- User authentication for creators
+- Document templates
+- Audit trail
+- Multiple recipients per document
 
-## Additional Resources
+## License
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+MIT

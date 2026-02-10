@@ -19,17 +19,21 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dis
   styleUrl: './home.css',
 })
 export class Home implements OnInit {
+  // UI state
   isDesignerMode = true;
-  selectedRecipient: Recipient | null = null;
   showSignatureModal = false;
   currentSignatureField: Field | null = null;
+  
+  // Document data
+  documentId: string | null = null;
+  selectedRecipient: Recipient | null = null;
+  
+  // Unused legacy fields
   showSendModal = false;
   recipientEmail = '';
   emailSubject = '';
-  
   newRecipientName = '';
   newRecipientEmail = '';
-  documentId: string | null = null;
 
   constructor(
     public docService: DocumentService,
@@ -39,20 +43,22 @@ export class Home implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Check if editing existing document or creating new one
     this.documentId = this.route.snapshot.paramMap.get('id');
+    
     if (this.documentId) {
+      // Load existing document from backend
       this.apiService.getDocument(this.documentId).subscribe(doc => {
         this.docService.loadDocument(doc);
-        // If document is completed, switch to preview mode
+        // Show completed docs in preview mode
         if (doc.status === 'completed') {
           this.isDesignerMode = false;
         }
       });
     } else {
-      // Create empty document with default recipient
+      // Create new document with default signer
       this.docService.createDocument('Untitled Document');
-      const defaultRecipient = this.docService.addRecipient('Signer', 'signer@example.com');
-      this.selectedRecipient = defaultRecipient;
+      this.selectedRecipient = this.docService.addRecipient('Signer', 'signer@example.com');
     }
   }
 
@@ -60,15 +66,16 @@ export class Home implements OnInit {
     const file = event.target.files[0];
     if (!file) return;
 
+    // Update document name
     const doc = this.docService.getDocument();
-    if (doc) {
-      doc.name = file.name;
-    }
+    if (doc) doc.name = file.name;
     
+    // Convert PDF to images using PDF.js
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
     const pages = [];
 
+    // Render each page as image
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const viewport = page.getViewport({ scale: 2.0 }); 
@@ -88,11 +95,7 @@ export class Home implements OnInit {
     }
     
     this.docService.setPages(pages);
-    
-    // Upload PDF to backend
-    this.apiService.uploadPdf(file).subscribe(() => {
-      this.saveDocument();
-    });
+    this.apiService.uploadPdf(file).subscribe(() => this.saveDocument());
   }
 
   addRecipient() {
@@ -105,19 +108,17 @@ export class Home implements OnInit {
   }
 
   addField(type: 'SIGNATURE' | 'TEXT' | 'DATE' | 'INITIALS') {
-    // Auto-create recipient if none exists
+    // Ensure we have a recipient
     if (!this.selectedRecipient) {
-      const defaultRecipient = this.docService.addRecipient('Signer', 'signer@example.com');
-      this.selectedRecipient = defaultRecipient;
+      this.selectedRecipient = this.docService.addRecipient('Signer', 'signer@example.com');
     }
     
+    // Add field at top-left corner
     this.docService.addField({
       type,
       pageNumber: 1,
-      x: 5,
-      y: 5,
-      width: 150,
-      height: 40,
+      x: 5, y: 5,
+      width: 150, height: 40,
       recipientId: this.selectedRecipient.id,
       required: true
     });
@@ -125,19 +126,15 @@ export class Home implements OnInit {
   }
 
   onDragEnd(event: CdkDragEnd, field: Field) {
+    // Calculate new position as percentage
     const element = event.source.element.nativeElement;
     const parent = element.parentElement!.getBoundingClientRect();
     const box = element.getBoundingClientRect();
 
-    const newX = box.left - parent.left;
-    const newY = box.top - parent.top;
+    const newX = (box.left - parent.left) / parent.width * 100;
+    const newY = (box.top - parent.top) / parent.height * 100;
 
-    this.docService.updateField(field.id, {
-      x: (newX / parent.width) * 100,
-      y: (newY / parent.height) * 100
-    });
-    
-    // Reset the drag transform
+    this.docService.updateField(field.id, { x: newX, y: newY });
     event.source.reset();
     this.saveDocument();
   }
@@ -156,13 +153,8 @@ export class Home implements OnInit {
     this.currentSignatureField = null;
   }
 
-  getRecipient(id: string): Recipient | undefined {
-    return this.docService.getDocument()?.recipients.find(r => r.id === id);
-  }
-
   toggleMode() {
-    // Don't allow editing completed documents
-    if (this.document?.status === 'completed' && !this.isDesignerMode) {
+    if (this.isCompleted && !this.isDesignerMode) {
       alert('This document has been signed and cannot be edited.');
       return;
     }
@@ -173,21 +165,14 @@ export class Home implements OnInit {
     const doc = this.docService.getDocument();
     if (!doc) return;
     
-    console.log('Saving document:', doc);
-    
     if (this.documentId) {
-      this.apiService.updateDocument(doc).subscribe({
-        next: () => console.log('Document updated'),
-        error: (err) => console.error('Update error:', err)
-      });
+      // Update existing
+      this.apiService.updateDocument(doc).subscribe();
     } else {
-      this.apiService.saveDocument(doc).subscribe({
-        next: (saved) => {
-          console.log('Document saved:', saved);
-          this.documentId = saved.id;
-          this.router.navigate(['/editor', saved.id], { replaceUrl: true });
-        },
-        error: (err) => console.error('Save error:', err)
+      // Create new
+      this.apiService.saveDocument(doc).subscribe(saved => {
+        this.documentId = saved.id;
+        this.router.navigate(['/editor', saved.id], { replaceUrl: true });
       });
     }
   }
@@ -197,27 +182,17 @@ export class Home implements OnInit {
   }
 
   openSendModal() {
-    // Auto-create recipient if none exists
+    // Ensure recipient exists
     if (!this.document?.recipients.length) {
-      const defaultRecipient = this.docService.addRecipient('Signer', 'signer@example.com');
-      this.selectedRecipient = defaultRecipient;
+      this.selectedRecipient = this.docService.addRecipient('Signer', 'signer@example.com');
     }
     
-    // Save first if not saved
+    // Save if needed, then generate link
     if (!this.documentId) {
-      const doc = this.docService.getDocument();
-      if (!doc) return;
-      
-      this.apiService.saveDocument(doc).subscribe({
-        next: (saved) => {
-          this.documentId = saved.id;
-          this.router.navigate(['/editor', saved.id], { replaceUrl: true });
-          this.generateShareLink();
-        },
-        error: (err) => {
-          console.error('Save error:', err);
-          alert('Failed to save document. Make sure backend is running.');
-        }
+      this.apiService.saveDocument(this.docService.getDocument()!).subscribe(saved => {
+        this.documentId = saved.id;
+        this.router.navigate(['/editor', saved.id], { replaceUrl: true });
+        this.generateShareLink();
       });
     } else {
       this.generateShareLink();
@@ -225,17 +200,14 @@ export class Home implements OnInit {
   }
 
   generateShareLink() {
-    if (!this.documentId) return;
+    const link = `http://localhost:4200/sign/${this.documentId}`;
     
-    const signingLink = `http://localhost:4200/sign/${this.documentId}`;
+    navigator.clipboard.writeText(link).then(
+      () => alert(`Signing link copied!\n\n${link}`),
+      () => alert(`Signing link:\n\n${link}`)
+    );
     
-    // Copy to clipboard
-    navigator.clipboard.writeText(signingLink).then(() => {
-      alert(`Signing link copied to clipboard!\n\n${signingLink}`);
-    }).catch(() => {
-      alert(`Signing link created!\n\n${signingLink}\n\nCopy this link to sign the document.`);
-    });
-    
+    // Mark as sent
     const doc = this.docService.getDocument();
     if (doc) {
       doc.status = 'sent';
@@ -244,23 +216,16 @@ export class Home implements OnInit {
   }
 
   downloadPdf() {
-    if (!this.document) return;
+    if (!this.document?.pages.length) return;
     
-    const doc = this.document;
     const link = document.createElement('a');
-    
-    if (doc.pages.length > 0) {
-      link.href = doc.pages[0].imageUrl;
-      link.download = `${doc.name.replace('.pdf', '')}_signed.png`;
-      link.click();
-    }
+    link.href = this.document.pages[0].imageUrl;
+    link.download = `${this.document.name.replace('.pdf', '')}_signed.png`;
+    link.click();
   }
 
-  get isCompleted(): boolean {
-    return this.document?.status === 'completed';
-  }
-
-  get document() {
-    return this.docService.getDocument();
-  }
+  // Helpers
+  get isCompleted() { return this.document?.status === 'completed'; }
+  get document() { return this.docService.getDocument(); }
+  getRecipient(id: string) { return this.document?.recipients.find(r => r.id === id); }
 }

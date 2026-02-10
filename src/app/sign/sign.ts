@@ -63,17 +63,14 @@ export class SignComponent implements OnInit {
     this.showSignatureModal = false;
   }
 
-  finish() {
+  async finish() {
     if (!this.document) return;
     
     console.log('=== DOCUMENT SIGNED ===');
     console.log('Document:', this.document.name);
-    console.log('Fields:', this.document.fields);
-    console.log('Completed data:', JSON.stringify(this.document.fields.map(f => ({
-      type: f.type,
-      value: f.value,
-      recipientId: f.recipientId
-    })), null, 2));
+    
+    // Burn signatures into PDF pages and wait for completion
+    await this.burnSignaturesIntoPages();
     
     // Update document status and save to backend
     this.document.status = 'completed';
@@ -84,9 +81,74 @@ export class SignComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to save:', err);
-        this.completed = true; // Still show success to user
+        this.completed = true;
       }
     });
+  }
+
+  async burnSignaturesIntoPages() {
+    if (!this.document) return;
+
+    const promises = this.document.pages.map(page => {
+      return new Promise<void>((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          
+          // Draw the original page
+          ctx.drawImage(img, 0, 0);
+          
+          // Get fields for this page
+          const pageFields = this.document!.fields.filter(
+            f => f.pageNumber === page.pageNumber && f.value
+          );
+          
+          // Draw each field
+          let imagesLoaded = 0;
+          const totalImages = pageFields.filter(f => 
+            f.type === 'SIGNATURE' || f.type === 'INITIALS'
+          ).length;
+          
+          pageFields.forEach(field => {
+            const x = (field.x / 100) * canvas.width;
+            const y = (field.y / 100) * canvas.height;
+            const w = field.width * 2;
+            const h = field.height * 2;
+            
+            if (field.type === 'SIGNATURE' || field.type === 'INITIALS') {
+              const sigImg = new Image();
+              sigImg.onload = () => {
+                ctx.drawImage(sigImg, x, y, w, h);
+                imagesLoaded++;
+                if (imagesLoaded === totalImages) {
+                  page.imageUrl = canvas.toDataURL();
+                  resolve();
+                }
+              };
+              sigImg.src = field.value!;
+            } else {
+              // Draw text
+              ctx.font = '24px Arial';
+              ctx.fillStyle = '#000';
+              ctx.fillText(field.value!, x, y + 30);
+            }
+          });
+          
+          // If no signature images, resolve immediately
+          if (totalImages === 0) {
+            page.imageUrl = canvas.toDataURL();
+            resolve();
+          }
+        };
+        img.src = page.imageUrl;
+      });
+    });
+    
+    await Promise.all(promises);
   }
 
   downloadPdf() {

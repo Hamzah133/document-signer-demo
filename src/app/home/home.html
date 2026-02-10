@@ -27,7 +27,8 @@
         <img [src]="page.imageUrl" class="page-image">
 
         <ng-container *ngFor="let field of document?.fields">
-          <div *ngIf="field.pageNumber === page.pageNumber"
+          <!-- Only show field boxes if NOT completed -->
+          <div *ngIf="field.pageNumber === page.pageNumber && !isCompleted"
                class="field-box"
                [cdkDragDisabled]="!isDesignerMode || isCompleted"
                cdkDrag
@@ -45,7 +46,7 @@
             </span>
 
             <!-- Preview/Completed mode - show values -->
-            <div *ngIf="!isDesignerMode || isCompleted" class="field-value">
+            <div *ngIf="!isDesignerMode" class="field-value">
               <img *ngIf="(field.type === 'SIGNATURE' || field.type === 'INITIALS') && field.value" 
                    [src]="field.value" class="signature-img" />
               <span *ngIf="field.type === 'TEXT' || field.type === 'DATE'">{{ field.value || '(empty)' }}</span>
