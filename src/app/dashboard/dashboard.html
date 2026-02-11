@@ -1,32 +1,54 @@
 <div class="dashboard">
-  <div class="header">
-    <h1>My Documents</h1>
-    <button class="create-btn" (click)="createNew()">+ New Document</button>
-  </div>
-
-  <div class="document-grid">
-    <div *ngFor="let doc of documents" class="document-card" (click)="openDocument(doc)">
-      <div class="document-preview">
-        <img *ngIf="doc.pages[0]" [src]="doc.pages[0].imageUrl" alt="Preview" />
-        <div *ngIf="!doc.pages[0]" class="no-preview">No Preview</div>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="navbar-left">
+        <h2 class="logo">Document Signer</h2>
       </div>
-      <div class="document-info">
-        <h3>{{ doc.name }}</h3>
-        <div class="meta">
-          <span class="status" [class]="doc.status">{{ doc.status }}</span>
-          <span class="date">{{ doc.createdAt | date:'short' }}</span>
-        </div>
-        <div class="recipients">
-          <span *ngFor="let recipient of doc.recipients" class="recipient-badge" [style.background]="recipient.color">
-            {{ recipient.name }}
-          </span>
-        </div>
+      <div class="navbar-right">
+        <span class="user-email">{{ userEmail }}</span>
+        <button class="ghost-btn" (click)="logout()">Logout</button>
       </div>
     </div>
-  </div>
+  </nav>
 
-  <div *ngIf="documents.length === 0" class="empty-state">
-    <p>No documents yet</p>
-    <button (click)="createNew()">Create your first document</button>
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header">
+      <h1>My Documents</h1>
+      <button class="primary-btn" (click)="createNew()">+ New Document</button>
+    </div>
+
+    <!-- Documents Table -->
+    <div class="card" *ngIf="documents.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Document Name</th>
+            <th>Status</th>
+            <th>Last Modified</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doc of documents" (click)="openDocument(doc)" class="table-row">
+            <td class="doc-name">{{ doc.name }}</td>
+            <td>
+              <span class="status-badge" [class]="doc.status">{{ doc.status }}</span>
+            </td>
+            <td class="date">{{ doc.createdAt | date:'MMM d, y' }}</td>
+            <td>
+              <button class="ghost-btn" (click)="deleteDocument(doc, $event)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="documents.length === 0" class="empty-state">
+      <p>No documents yet</p>
+      <button class="primary-btn" (click)="createNew()">Create your first document</button>
+    </div>
   </div>
 </div>

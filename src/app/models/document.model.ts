@@ -14,7 +14,7 @@ export interface Recipient {
 
 export interface Field {
   id: string;
-  type: 'SIGNATURE' | 'TEXT' | 'DATE' | 'INITIALS';
+  type: 'SIGNATURE' | 'TEXT' | 'DATE' | 'INITIALS' | 'NUMBER';
   pageNumber: number;
   x: number;
   y: number;
@@ -33,4 +33,5 @@ export interface DocumentState {
   recipients: Recipient[];
   createdAt: Date;
   status: 'draft' | 'sent' | 'completed';
+  userId?: string;
 }

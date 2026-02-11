@@ -10,38 +10,45 @@
     <div *ngFor="let page of document?.pages" class="page">
       <img [src]="page.imageUrl" class="page-image" />
       
-      <div *ngFor="let field of document?.fields" 
-           [hidden]="field.pageNumber !== page.pageNumber"
-           class="field"
-           [style.left.%]="field.x"
-           [style.top.%]="field.y"
-           [style.width.px]="field.width"
-           [style.height.px]="field.height">
-        
-        <input *ngIf="field.type === 'TEXT'" 
-               [(ngModel)]="field.value" 
-               placeholder="Type here..."
-               class="field-input" />
-        
-        <input *ngIf="field.type === 'DATE'" 
-               [(ngModel)]="field.value" 
-               type="date"
-               class="field-input" />
+      <ng-container *ngFor="let field of document?.fields">
+        <div *ngIf="field.pageNumber === page.pageNumber"
+             class="field"
+             [style.left.%]="field.x"
+             [style.top.%]="field.y"
+             [style.width.px]="field.width"
+             [style.height.px]="field.height">
+          
+          <input *ngIf="field.type === 'TEXT'" 
+                 [(ngModel)]="field.value" 
+                 placeholder="Type here..."
+                 class="field-input" />
+          
+          <input *ngIf="field.type === 'NUMBER'" 
+                 [(ngModel)]="field.value" 
+                 type="number"
+                 placeholder="Enter number..."
+                 class="field-input" />
+          
+          <input *ngIf="field.type === 'DATE'" 
+                 [(ngModel)]="field.value" 
+                 type="date"
+                 class="field-input" />
 
-        <button *ngIf="field.type === 'SIGNATURE' || field.type === 'INITIALS'"
-                (click)="openSignature(field)"
-                class="sign-btn"
-                [class.signed]="field.value">
-          <img *ngIf="field.value" [src]="field.value" class="signature-img" />
-          <span *ngIf="!field.value">{{ field.type === 'SIGNATURE' ? '✍️ Click to Sign' : 'Click for Initials' }}</span>
-        </button>
-      </div>
+          <button *ngIf="field.type === 'SIGNATURE' || field.type === 'INITIALS'"
+                  (click)="openSignature(field)"
+                  class="sign-btn"
+                  [class.signed]="field.value">
+            <img *ngIf="field.value" [src]="field.value" class="signature-img" />
+            <span *ngIf="!field.value">{{ field.type === 'SIGNATURE' ? 'Click to Sign' : 'Click for Initials' }}</span>
+          </button>
+        </div>
+      </ng-container>
     </div>
   </div>
 
   <div class="finish-bar">
     <button (click)="finish()" [disabled]="!canFinish" class="finish-btn">
-      {{ canFinish ? 'Finish Signing' : 'Complete all required fields' }}
+      {{ canFinish ? 'Finish & Save' : 'Complete all required fields' }}
     </button>
   </div>
 </div>

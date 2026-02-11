@@ -21,35 +21,47 @@ ng serve
 ```
 Frontend runs on `http://localhost:4200`
 
+### 3. Login
+Demo credentials: `demo@example.com` / `demo123`
+
 ## How It Works
 
 ### For Document Creators:
-1. **Dashboard** (`/`) - View all documents
-2. **Upload PDF** - Click "New Document" and upload
-3. **Add Fields** - Click field buttons (Signature, Text, Date, Initials)
-4. **Position Fields** - Drag fields to correct positions
-5. **Share Link** - Click "Share Link" to copy signing URL
-6. **View Signed** - Completed docs show with signatures embedded
+1. **Login** - Sign in or create account
+2. **Dashboard** (`/dashboard`) - View all your documents
+3. **Upload PDF** - Click "New Document" and upload
+4. **Add Fields** - Click field buttons (Signature, Text, Date, Initials, Number)
+5. **Position Fields** - Drag fields to correct positions on any page
+6. **Share Link** - Click "Share Link" to copy signing URL
+7. **View Signed** - Completed docs show with signatures embedded
+8. **Delete** - Remove documents you no longer need
 
 ### For Signers:
 1. **Open Link** - Click the signing link received
-2. **Fill Fields** - Type in text boxes, select dates
-3. **Sign** - Click signature fields to draw signature
+2. **Fill Fields** - Type in text/number boxes, select dates
+3. **Sign** - Click signature/initial fields to draw (auto-fills all matching fields)
 4. **Finish** - Click "Finish Signing" when done
 5. **Download** - Download the signed document
 
 ## Features
 
+✅ User authentication (login/register)  
+✅ User-specific document management  
 ✅ PDF upload and rendering to images  
 ✅ Drag & drop field positioning  
-✅ 4 field types (Signature, Text, Date, Initials)  
+✅ 5 field types (Signature, Text, Date, Initials, Number)  
 ✅ Canvas-based signature drawing  
+✅ Auto-fill matching signature/initial fields  
+✅ Smart progress tracking  
+✅ Multi-page support with current page tracking  
 ✅ No login required for signers  
 ✅ Auto-save to backend  
 ✅ Signatures burned into PDF images  
 ✅ Download signed documents  
+✅ Delete documents  
 ✅ Status tracking (Draft → Sent → Completed)  
 ✅ Mobile-responsive signing page  
+✅ Modern UI inspired by deskflo.io  
 
 ## Project Structure
 

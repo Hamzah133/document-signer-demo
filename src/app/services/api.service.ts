@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DocumentState } from '../models/document.model';
 
@@ -11,8 +11,13 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  }
+
   getDocuments(): Observable<DocumentState[]> {
-    return this.http.get<DocumentState[]>(`${this.baseUrl}/documents`);
+    return this.http.get<DocumentState[]>(`${this.baseUrl}/documents`, { headers: this.getHeaders() });
   }
 
   getDocument(id: string): Observable<DocumentState> {
@@ -20,28 +25,27 @@ export class ApiService {
   }
 
   saveDocument(doc: DocumentState): Observable<DocumentState> {
-    return this.http.post<DocumentState>(`${this.baseUrl}/documents`, doc);
+    return this.http.post<DocumentState>(`${this.baseUrl}/documents`, doc, { headers: this.getHeaders() });
   }
 
   updateDocument(doc: DocumentState): Observable<DocumentState> {
     return this.http.put<DocumentState>(`${this.baseUrl}/documents/${doc.id}`, doc);
   }
 
+  deleteDocument(id: string): Observable<{success: boolean}> {
+    return this.http.delete<{success: boolean}>(`${this.baseUrl}/documents/${id}`, { headers: this.getHeaders() });
+  }
+
   uploadPdf(file: File): Observable<{filename: string, path: string}> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{filename: string, path: string}>(`${this.baseUrl}/upload`, formData);
+    return this.http.post<{filename: string, path: string}>(`${this.baseUrl}/upload`, formData, { headers: this.getHeaders() });
   }
 
-  sendDocument(docId: string, email: string, subject: string): Observable<{token: string}> {
-    return this.http.post<{token: string}>(`${this.baseUrl}/documents/${docId}/send`, { email, subject });
-  }
-
-  getDocumentByToken(token: string): Observable<DocumentState> {
-    return this.http.get<DocumentState>(`${this.baseUrl}/sign/${token}`);
-  }
-
-  completeDocument(token: string, doc: DocumentState): Observable<{success: boolean}> {
-    return this.http.post<{success: boolean}>(`${this.baseUrl}/sign/${token}/complete`, doc);
+  downloadPdf(doc: DocumentState): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/documents/${doc.id}/download`, 
+      { pages: doc.pages, name: doc.name },
+      { responseType: 'blob' }
+    );
   }
 }

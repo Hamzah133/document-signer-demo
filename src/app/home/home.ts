@@ -23,6 +23,7 @@ export class Home implements OnInit {
   isDesignerMode = true;
   showSignatureModal = false;
   currentSignatureField: Field | null = null;
+  currentPageNumber = 1;
   
   // Document data
   documentId: string | null = null;
@@ -50,8 +51,8 @@ export class Home implements OnInit {
       // Load existing document from backend
       this.apiService.getDocument(this.documentId).subscribe(doc => {
         this.docService.loadDocument(doc);
-        // Show completed docs in preview mode
-        if (doc.status === 'completed') {
+        // Show sent/completed docs in preview mode
+        if (doc.status === 'sent' || doc.status === 'completed') {
           this.isDesignerMode = false;
         }
       });
@@ -107,17 +108,17 @@ export class Home implements OnInit {
     this.saveDocument();
   }
 
-  addField(type: 'SIGNATURE' | 'TEXT' | 'DATE' | 'INITIALS') {
+  addField(type: 'SIGNATURE' | 'TEXT' | 'DATE' | 'INITIALS' | 'NUMBER') {
     // Ensure we have a recipient
     if (!this.selectedRecipient) {
       this.selectedRecipient = this.docService.addRecipient('Signer', 'signer@example.com');
     }
     
-    // Add field at top-left corner
+    // Add field at center of current page
     this.docService.addField({
       type,
-      pageNumber: 1,
-      x: 5, y: 5,
+      pageNumber: this.currentPageNumber,
+      x: 40, y: 40,
       width: 150, height: 40,
       recipientId: this.selectedRecipient.id,
       required: true
@@ -154,8 +155,8 @@ export class Home implements OnInit {
   }
 
   toggleMode() {
-    if (this.isCompleted && !this.isDesignerMode) {
-      alert('This document has been signed and cannot be edited.');
+    if (this.document?.status === 'sent' || this.document?.status === 'completed') {
+      alert('This document has been sent and cannot be edited.');
       return;
     }
     this.isDesignerMode = !this.isDesignerMode;
@@ -218,10 +219,36 @@ export class Home implements OnInit {
   downloadPdf() {
     if (!this.document?.pages.length) return;
     
-    const link = document.createElement('a');
-    link.href = this.document.pages[0].imageUrl;
-    link.download = `${this.document.name.replace('.pdf', '')}_signed.png`;
-    link.click();
+    this.apiService.downloadPdf(this.document).subscribe(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${this.document!.name.replace('.pdf', '')}_signed.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+  onPageScroll(event: any) {
+    const container = event.target;
+    const pages = container.querySelectorAll('.page-container');
+    
+    pages.forEach((page: any, index: number) => {
+      const rect = page.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      
+      if (rect.top >= containerRect.top && rect.top < containerRect.top + containerRect.height / 2) {
+        this.currentPageNumber = index + 1;
+      }
+    });
+  }
+
+  deleteDocument() {
+    if (!this.documentId || !confirm('Delete this document?')) return;
+    
+    this.apiService.deleteDocument(this.documentId).subscribe(() => {
+      this.router.navigate(['/dashboard']);
+    });
   }
 
   // Helpers

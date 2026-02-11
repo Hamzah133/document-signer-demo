@@ -40,7 +40,23 @@ export class SignComponent implements OnInit {
   }
 
   get completedFields(): number {
-    return this.document?.fields.filter(f => f.value).length || 0;
+    if (!this.document) return 0;
+    
+    let count = 0;
+    const signatureFilled = this.document.fields.some(f => f.type === 'SIGNATURE' && f.value);
+    const initialsFilled = this.document.fields.some(f => f.type === 'INITIALS' && f.value);
+    
+    this.document.fields.forEach(f => {
+      if (f.type === 'SIGNATURE' && signatureFilled) {
+        count++;
+      } else if (f.type === 'INITIALS' && initialsFilled) {
+        count++;
+      } else if (f.type !== 'SIGNATURE' && f.type !== 'INITIALS' && f.value) {
+        count++;
+      }
+    });
+    
+    return count;
   }
 
   get totalFields(): number {
@@ -58,7 +74,17 @@ export class SignComponent implements OnInit {
 
   onSignatureSaved(dataUrl: string) {
     if (this.currentField) {
+      const fieldType = this.currentField.type;
+      
+      // Update current field
       this.currentField.value = dataUrl;
+      
+      // Auto-fill all matching fields
+      this.document?.fields.forEach(f => {
+        if (f.type === fieldType && !f.value) {
+          f.value = dataUrl;
+        }
+      });
     }
     this.showSignatureModal = false;
   }
@@ -154,13 +180,13 @@ export class SignComponent implements OnInit {
   downloadPdf() {
     if (!this.document) return;
     
-    const doc = this.document;
-    const link = document.createElement('a');
-    
-    if (doc.pages.length > 0) {
-      link.href = doc.pages[0].imageUrl;
-      link.download = `${doc.name.replace('.pdf', '')}_signed.png`;
+    this.apiService.downloadPdf(this.document).subscribe(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${this.document!.name.replace('.pdf', '')}_signed.pdf`;
       link.click();
-    }
+      window.URL.revokeObjectURL(url);
+    });
   }
 }

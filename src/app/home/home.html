@@ -1,60 +1,86 @@
-<div class="main-container">
-  
-  <div class="sidebar" *ngIf="isDesignerMode && !isCompleted">
-    <h3>Add Fields</h3>
-    <div class="field-buttons">
-      <button (click)="addField('SIGNATURE')">+ Signature</button>
-      <button (click)="addField('TEXT')">+ Text</button>
-      <button (click)="addField('DATE')">+ Date</button>
-      <button (click)="addField('INITIALS')">+ Initials</button>
+<div class="designer">
+  <!-- Toolbar Navbar -->
+  <nav class="toolbar">
+    <div class="toolbar-left">
+      <button (click)="backToDashboard()" class="ghost-btn">← Back</button>
+      <span class="doc-title">{{ document?.name || 'Untitled Document' }}</span>
     </div>
-  </div>
-
-  <div class="main-content">
-    <div class="toolbar">
-      <button (click)="backToDashboard()" class="back-btn">← Dashboard</button>
-      <input type="file" (change)="onFileSelected($event)" accept=".pdf" *ngIf="isDesignerMode && !isCompleted" />
-      <button class="toggle-btn" (click)="toggleMode()" *ngIf="!isCompleted">
+    <div class="toolbar-right">
+      <label *ngIf="isDesignerMode && !isCompleted && !document?.pages?.length" class="file-upload-btn">
+        <input type="file" (change)="onFileSelected($event)" accept=".pdf" class="file-input-hidden" />
+        Upload PDF
+      </label>
+      <button class="outline-btn" (click)="toggleMode()" *ngIf="!isCompleted">
         {{ isDesignerMode ? 'Preview' : 'Edit' }}
       </button>
-      <button *ngIf="isDesignerMode && document?.pages?.length && !isCompleted" (click)="openSendModal()" class="send-btn">Share Link</button>
-      <button *ngIf="document?.pages?.length" (click)="downloadPdf()" class="send-btn">Download PDF</button>
-      <span *ngIf="isCompleted" class="completed-badge">✓ Completed</span>
+      <button *ngIf="isDesignerMode && document?.pages?.length && !isCompleted" (click)="openSendModal()" class="primary-btn">Create Signing Link</button>
+      <button *ngIf="document?.pages?.length" (click)="downloadPdf()" class="outline-btn">Download</button>
+      <button *ngIf="documentId && isDesignerMode" (click)="deleteDocument()" class="ghost-btn">Delete</button>
+      <span *ngIf="isCompleted" class="completed-badge">Completed</span>
     </div>
+  </nav>
 
-    <div class="document-scroller">
-      <div *ngFor="let page of document?.pages" class="page-container">
+  <!-- Main Layout -->
+  <div class="designer-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar" *ngIf="isDesignerMode && document?.status === 'draft'">
+      <h3 class="sidebar-title">TOOLS</h3>
+      <div class="tool-list">
+        <button (click)="addField('SIGNATURE')" class="tool-item">
+          <span class="tool-label">Signature</span>
+        </button>
+        <button (click)="addField('TEXT')" class="tool-item">
+          <span class="tool-label">Text Field</span>
+        </button>
+        <button (click)="addField('DATE')" class="tool-item">
+          <span class="tool-label">Date</span>
+        </button>
+        <button (click)="addField('INITIALS')" class="tool-item">
+          <span class="tool-label">Initials</span>
+        </button>
+        <button (click)="addField('NUMBER')" class="tool-item">
+          <span class="tool-label">Number</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Canvas -->
+    <main class="canvas" (scroll)="onPageScroll($event)">
+      <div *ngFor="let page of document?.pages; let pageIndex = index" class="page-container">
         <img [src]="page.imageUrl" class="page-image">
 
         <ng-container *ngFor="let field of document?.fields">
-          <!-- Only show field boxes if NOT completed -->
-          <div *ngIf="field.pageNumber === page.pageNumber && !isCompleted"
+          <div *ngIf="field.pageNumber === page.pageNumber && (isDesignerMode && document?.status === 'draft')"
                class="field-box"
-               [cdkDragDisabled]="!isDesignerMode || isCompleted"
                cdkDrag
                (cdkDragEnded)="onDragEnd($event, field)"
                [style.left.%]="field.x"
                [style.top.%]="field.y"
                [style.width.px]="field.width"
-               [style.height.px]="field.height"
-               [style.border-color]="getRecipient(field.recipientId)?.color">
+               [style.height.px]="field.height">
                
-            <button *ngIf="isDesignerMode && !isCompleted" class="field-delete" (click)="docService.removeField(field.id)">×</button>
+            <button class="field-delete" (click)="docService.removeField(field.id)">×</button>
             
-            <span *ngIf="isDesignerMode && !isCompleted" class="field-label">
+            <span class="field-label">
               {{ field.type }}
             </span>
+          </div>
 
-            <!-- Preview/Completed mode - show values -->
-            <div *ngIf="!isDesignerMode" class="field-value">
+          <div *ngIf="field.pageNumber === page.pageNumber && (!isDesignerMode || document?.status !== 'draft')" class="field-preview-box"
+               [style.left.%]="field.x"
+               [style.top.%]="field.y"
+               [style.width.px]="field.width"
+               [style.height.px]="field.height">
+            <div class="field-preview-content">
               <img *ngIf="(field.type === 'SIGNATURE' || field.type === 'INITIALS') && field.value" 
                    [src]="field.value" class="signature-img" />
-              <span *ngIf="field.type === 'TEXT' || field.type === 'DATE'">{{ field.value || '(empty)' }}</span>
+              <span *ngIf="!field.value" class="field-preview-label">{{ field.type }}</span>
+              <span *ngIf="field.value && (field.type === 'TEXT' || field.type === 'DATE' || field.type === 'NUMBER')">{{ field.value }}</span>
             </div>
           </div>
         </ng-container>
       </div>
-    </div>
+    </main>
   </div>
 </div>
 
