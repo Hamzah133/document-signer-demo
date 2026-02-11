@@ -26,7 +26,7 @@ import { AuthService } from '../services/auth.service';
         </div>
         
         <div class="error" *ngIf="error">{{ error }}</div>
-        <div class="demo-hint">Demo: demo&#64;example.com / demo123</div>
+        <!-- <div class="demo-hint">Demo: demo&#64;example.com / demo123</div> -->
       </div>
     </div>
   `,
