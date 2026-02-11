@@ -27,15 +27,8 @@ export class SignComponent implements OnInit {
 
   ngOnInit() {
     this.token = this.route.snapshot.paramMap.get('token')!;
-    this.apiService.getDocument(this.token).subscribe({
-      next: (doc) => {
-        this.document = doc;
-        console.log('Document loaded for signing:', doc);
-      },
-      error: (err) => {
-        console.error('Error loading document:', err);
-        alert('Failed to load document. Please check the link.');
-      }
+    this.apiService.getDocument(this.token).subscribe(doc => {
+      this.document = doc;
     });
   }
 
@@ -47,13 +40,9 @@ export class SignComponent implements OnInit {
     const initialsFilled = this.document.fields.some(f => f.type === 'INITIALS' && f.value);
     
     this.document.fields.forEach(f => {
-      if (f.type === 'SIGNATURE' && signatureFilled) {
-        count++;
-      } else if (f.type === 'INITIALS' && initialsFilled) {
-        count++;
-      } else if (f.type !== 'SIGNATURE' && f.type !== 'INITIALS' && f.value) {
-        count++;
-      }
+      if (f.type === 'SIGNATURE' && signatureFilled) count++;
+      else if (f.type === 'INITIALS' && initialsFilled) count++;
+      else if (f.type !== 'SIGNATURE' && f.type !== 'INITIALS' && f.value) count++;
     });
     
     return count;
@@ -75,11 +64,8 @@ export class SignComponent implements OnInit {
   onSignatureSaved(dataUrl: string) {
     if (this.currentField) {
       const fieldType = this.currentField.type;
-      
-      // Update current field
       this.currentField.value = dataUrl;
       
-      // Auto-fill all matching fields
       this.document?.fields.forEach(f => {
         if (f.type === fieldType && !f.value) {
           f.value = dataUrl;
@@ -92,23 +78,11 @@ export class SignComponent implements OnInit {
   async finish() {
     if (!this.document) return;
     
-    console.log('=== DOCUMENT SIGNED ===');
-    console.log('Document:', this.document.name);
-    
-    // Burn signatures into PDF pages and wait for completion
     await this.burnSignaturesIntoPages();
     
-    // Update document status and save to backend
     this.document.status = 'completed';
-    this.apiService.updateDocument(this.document).subscribe({
-      next: () => {
-        console.log('Document saved to backend');
-        this.completed = true;
-      },
-      error: (err) => {
-        console.error('Failed to save:', err);
-        this.completed = true;
-      }
+    this.apiService.updateDocument(this.document).subscribe(() => {
+      this.completed = true;
     });
   }
 
@@ -124,16 +98,12 @@ export class SignComponent implements OnInit {
         img.onload = () => {
           canvas.width = img.width;
           canvas.height = img.height;
-          
-          // Draw the original page
           ctx.drawImage(img, 0, 0);
           
-          // Get fields for this page
           const pageFields = this.document!.fields.filter(
             f => f.pageNumber === page.pageNumber && f.value
           );
           
-          // Draw each field
           let imagesLoaded = 0;
           const totalImages = pageFields.filter(f => 
             f.type === 'SIGNATURE' || f.type === 'INITIALS'
@@ -157,14 +127,12 @@ export class SignComponent implements OnInit {
               };
               sigImg.src = field.value!;
             } else {
-              // Draw text
               ctx.font = '24px Arial';
               ctx.fillStyle = '#000';
               ctx.fillText(field.value!, x, y + 30);
             }
           });
           
-          // If no signature images, resolve immediately
           if (totalImages === 0) {
             page.imageUrl = canvas.toDataURL();
             resolve();

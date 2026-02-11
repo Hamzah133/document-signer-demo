@@ -66,7 +66,7 @@
             </span>
           </div>
 
-          <div *ngIf="field.pageNumber === page.pageNumber && (!isDesignerMode || document?.status !== 'draft')" class="field-preview-box"
+          <div *ngIf="field.pageNumber === page.pageNumber && (!isDesignerMode || document?.status !== 'draft') && !isCompleted" class="field-preview-box"
                [style.left.%]="field.x"
                [style.top.%]="field.y"
                [style.width.px]="field.width"
