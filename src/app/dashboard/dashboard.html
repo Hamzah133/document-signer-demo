@@ -19,22 +19,45 @@
       <button class="primary-btn" (click)="createNew()">+ New Document</button>
     </div>
 
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <button
+        class="tab-button"
+        [class.active]="activeTab === 'documents'"
+        (click)="setActiveTab('documents')">
+        Documents
+      </button>
+      <button
+        class="tab-button"
+        [class.active]="activeTab === 'templates'"
+        (click)="setActiveTab('templates')">
+        Templates
+      </button>
+    </div>
+
     <!-- Documents Table -->
-    <div class="card" *ngIf="documents.length > 0">
+    <div class="card" *ngIf="getFilteredDocuments().length > 0">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Document Name</th>
+            <th>Name</th>
             <th>Status</th>
-            <th>Last Modified</th>
+            <th *ngIf="activeTab === 'documents'">Progress</th>
+            <th>Created</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let doc of documents" (click)="openDocument(doc)" class="table-row">
+          <tr *ngFor="let doc of getFilteredDocuments()" (click)="openDocument(doc)" class="table-row">
             <td class="doc-name">{{ doc.name }}</td>
             <td>
               <span class="status-badge" [class]="doc.status">{{ doc.status }}</span>
+            </td>
+            <td *ngIf="activeTab === 'documents'" class="progress">
+              <div class="progress-bar-container">
+                <div class="progress-bar" [style.width.%]="getProgressPercent(doc)"></div>
+              </div>
+              <span class="progress-text">{{ getProgressText(doc) }}</span>
             </td>
             <td class="date">{{ doc.createdAt | date:'MMM d, y' }}</td>
             <td>
@@ -46,9 +69,9 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="documents.length === 0" class="empty-state">
-      <p>No documents yet</p>
-      <button class="primary-btn" (click)="createNew()">Create your first document</button>
+    <div *ngIf="getFilteredDocuments().length === 0" class="empty-state">
+      <p>No documents in this section</p>
+      <button class="primary-btn" (click)="createNew()">Create a new document</button>
     </div>
   </div>
 </div>

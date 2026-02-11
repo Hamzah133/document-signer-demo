@@ -1,36 +1,62 @@
 <div class="sign-container" *ngIf="!completed">
-  <div class="progress-bar">
-    <div class="progress-text">{{ completedFields }} of {{ totalFields }} fields completed</div>
-    <div class="progress-track">
-      <div class="progress-fill" [style.width.%]="(completedFields / totalFields) * 100"></div>
+  <!-- Recipient Info Header -->
+  <div class="recipient-header" *ngIf="currentRecipient">
+    <div class="recipient-info">
+      <span class="label">Signing as:</span>
+      <span class="name">{{ currentRecipient.name }}</span>
+      <span class="email">({{ currentRecipient.email }})</span>
     </div>
   </div>
 
+  <!-- Multi-Sign Progress -->
+  <div class="multi-sign-progress" *ngIf="isMultiSign && signingProgress">
+    <div class="progress-info">
+      {{ signingProgress.signedCount }} of {{ signingProgress.totalRecipients }} participants have signed
+    </div>
+    <div class="recipients-list">
+      <div *ngFor="let recipient of signingProgress.recipients" class="recipient-item">
+        <span class="status-indicator" [class.signed]="recipient.signed">{{ recipient.signed ? '✓' : '○' }}</span>
+        <span class="recipient-name">{{ recipient.name }}</span>
+        <span class="signed-date" *ngIf="recipient.signedAt">{{ recipient.signedAt | date:'short' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar">
+    <div class="progress-text">{{ completedFields }} of {{ totalFields }} fields completed</div>
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="totalFields > 0 ? (completedFields / totalFields) * 100 : 0"></div>
+    </div>
+  </div>
+
+  <!-- Document Viewer -->
   <div class="document-viewer">
     <div *ngFor="let page of document?.pages" class="page">
       <img [src]="page.imageUrl" class="page-image" />
-      
-      <ng-container *ngFor="let field of document?.fields">
+
+      <!-- Only show fields assigned to current recipient -->
+      <ng-container *ngFor="let field of getVisibleFields()">
         <div *ngIf="field.pageNumber === page.pageNumber"
              class="field"
              [style.left.%]="field.x"
              [style.top.%]="field.y"
              [style.width.px]="field.width"
              [style.height.px]="field.height">
-          
-          <input *ngIf="field.type === 'TEXT'" 
-                 [(ngModel)]="field.value" 
+
+          <input *ngIf="field.type === 'TEXT'"
+                 [(ngModel)]="field.value"
                  placeholder="Type here..."
                  class="field-input" />
-          
-          <input *ngIf="field.type === 'NUMBER'" 
-                 [(ngModel)]="field.value" 
+
+          <input *ngIf="field.type === 'NUMBER'"
+                 [(ngModel)]="field.value"
                  type="number"
                  placeholder="Enter number..."
                  class="field-input" />
-          
-          <input *ngIf="field.type === 'DATE'" 
-                 [(ngModel)]="field.value" 
+
+          <input *ngIf="field.type === 'DATE'"
+                 [(ngModel)]="field.value"
                  type="date"
                  class="field-input" />
 
@@ -46,6 +72,7 @@
     </div>
   </div>
 
+  <!-- Finish Bar -->
   <div class="finish-bar">
     <button (click)="finish()" [disabled]="!canFinish" class="finish-btn">
       {{ canFinish ? 'Finish & Save' : 'Complete all required fields' }}
@@ -53,17 +80,23 @@
   </div>
 </div>
 
+<!-- Success Screen -->
 <div class="success-screen" *ngIf="completed">
   <div class="success-card">
     <div class="success-icon">✓</div>
     <h2>Document Signed Successfully!</h2>
-    <p>You can download or close this tab now.</p>
+    <p *ngIf="isMultiSign && signingProgress">
+      {{ signingProgress.totalRecipients - signingProgress.signedCount > 0 ? 'Waiting for other signers...' : 'All signers complete! Final PDF emailed.' }}
+    </p>
+    <p *ngIf="!isMultiSign">You can download or close this tab now.</p>
     <button (click)="downloadPdf()" class="download-btn">Download PDF</button>
   </div>
 </div>
 
-<app-signature-modal 
+<!-- Signature Modal -->
+<app-signature-modal
   *ngIf="showSignatureModal"
+  [fieldType]="(currentField?.type === 'INITIALS' ? 'INITIALS' : 'SIGNATURE')"
   (signatureSaved)="onSignatureSaved($event)"
   (closed)="showSignatureModal = false">
 </app-signature-modal>

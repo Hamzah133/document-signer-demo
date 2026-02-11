@@ -15,11 +15,13 @@ export class DocumentService {
     const doc: DocumentState = {
       id: this.generateId(),
       name,
+      type: 'document',
       pages: [],
       fields: [],
       recipients: [],
       createdAt: new Date(),
-      status: 'draft'
+      status: 'draft',
+      isTemplate: false
     };
     this.documentState.next(doc);
     return doc;
@@ -28,14 +30,15 @@ export class DocumentService {
   addRecipient(name: string, email: string): Recipient {
     const doc = this.documentState.value;
     if (!doc) throw new Error('No document');
-    
+
     const recipient: Recipient = {
       id: this.generateId(),
       name,
       email,
-      color: this.COLORS[doc.recipients.length % this.COLORS.length]
+      color: this.COLORS[doc.recipients.length % this.COLORS.length],
+      order: doc.recipients.length + 1
     };
-    
+
     doc.recipients.push(recipient);
     this.documentState.next(doc);
     return recipient;
