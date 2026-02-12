@@ -17,6 +17,13 @@ export class DashboardComponent implements OnInit {
   userEmail: string = '';
   activeTab: 'documents' | 'templates' = 'documents';
 
+  stats = {
+    total: 0,
+    completed: 0,
+    sent: 0,
+    draft: 0
+  };
+
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
@@ -32,12 +39,26 @@ export class DashboardComponent implements OnInit {
     this.apiService.getDocuments().subscribe({
       next: (docs) => {
         this.documents = docs;
+        this.updateStats();
       },
       error: (err) => {
         console.error('Failed to load documents', err);
         this.documents = [];
+        this.updateStats();
       }
     });
+  }
+
+  updateStats() {
+    const docs = this.getDocuments(); // Regular documents only
+    const templates = this.getTemplates(); // Count templates as drafts
+
+    this.stats = {
+      total: docs.length,
+      completed: docs.filter(d => d.status === 'completed').length,
+      sent: docs.filter(d => d.status === 'sent').length,
+      draft: docs.filter(d => d.status === 'draft').length + templates.length
+    };
   }
 
   /**

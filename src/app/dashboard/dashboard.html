@@ -19,6 +19,26 @@
       <button class="primary-btn" (click)="createNew()">+ New Document</button>
     </div>
 
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">{{ stats.total }}</div>
+        <div class="stat-label">Total Documents</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color: #27ae60;">{{ stats.completed }}</div>
+        <div class="stat-label">Signed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color: #f59e0b;">{{ stats.sent }}</div>
+        <div class="stat-label">Pending</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color: #6b7280;">{{ stats.draft }}</div>
+        <div class="stat-label">Draft</div>
+      </div>
+    </div>
+
     <!-- Tab Navigation -->
     <div class="tabs">
       <button

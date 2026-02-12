@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import * as pdfjsLib from 'pdfjs-dist';
 import { DocumentService } from '../services/document.service';
 import { ApiService } from '../services/api.service';
+import { SavedRecipientsService, SavedRecipient } from '../services/saved-recipients.service';
 import { Field, Recipient, DocumentType } from '../models/document.model';
 import { SignatureModalComponent } from '../components/signature-modal/signature-modal.component';
 
@@ -24,7 +25,7 @@ export class Home implements OnInit {
   showSendModal = false;
   showTemplateSendModal = false;
   showAddRecipientModal = false;
-  newRecipient = { name: '', email: '' };
+  newRecipient = { name: '', email: '', saveForLater: false };
   currentSignatureField: Field | null = null;
   currentPageNumber = 1;
   documentId: string | null = null;
@@ -36,16 +37,20 @@ export class Home implements OnInit {
   resizeStartY = 0;
   resizeStartWidth = 0;
   resizeStartHeight = 0;
+  savedRecipients: SavedRecipient[] = [];
+  showSavedRecipientsPanel = false;
 
   constructor(
     public docService: DocumentService,
     private apiService: ApiService,
+    private savedRecipientsService: SavedRecipientsService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
 
   ngOnInit() {
     this.documentId = this.route.snapshot.paramMap.get('id');
+    this.loadSavedRecipients();
 
     if (this.documentId) {
       this.apiService.getDocument(this.documentId).subscribe(doc => {
@@ -64,7 +69,7 @@ export class Home implements OnInit {
   }
 
   addNewRecipient() {
-    this.newRecipient = { name: '', email: '' };
+    this.newRecipient = { name: '', email: '', saveForLater: false };
     this.showAddRecipientModal = true;
   }
 
@@ -78,9 +83,47 @@ export class Home implements OnInit {
       return;
     }
 
+    // Save to document recipients
     this.selectedRecipient = this.docService.addRecipient(this.newRecipient.name, this.newRecipient.email);
+
+    // Save to saved recipients if checkbox is checked
+    if (this.newRecipient.saveForLater) {
+      this.savedRecipientsService.addSavedRecipient(this.newRecipient.name, this.newRecipient.email);
+      this.loadSavedRecipients();
+    }
+
     this.showAddRecipientModal = false;
     this.saveDocument();
+  }
+
+  loadSavedRecipients() {
+    this.savedRecipients = this.savedRecipientsService.getSavedRecipients();
+  }
+
+  addSavedRecipient(savedRecipient: SavedRecipient) {
+    const doc = this.docService.getDocument();
+    if (!doc) return;
+
+    // Check if recipient already exists
+    if (doc.recipients.some(r => r.email === savedRecipient.email)) {
+      alert('This recipient is already added to this document.');
+      return;
+    }
+
+    this.selectedRecipient = this.docService.addRecipient(savedRecipient.name, savedRecipient.email);
+    this.saveDocument();
+  }
+
+  removeSavedRecipient(id: string, event: Event) {
+    event.stopPropagation();
+    if (!confirm('Remove this saved recipient?')) return;
+
+    this.savedRecipientsService.removeSavedRecipient(id);
+    this.loadSavedRecipients();
+  }
+
+  toggleSavedRecipientsPanel() {
+    this.showSavedRecipientsPanel = !this.showSavedRecipientsPanel;
   }
 
   removeRecipient(recipientId: string, event: Event) {
@@ -187,7 +230,8 @@ export class Home implements OnInit {
    */
   addField(type: 'SIGNATURE' | 'TEXT' | 'DATE' | 'INITIALS' | 'NUMBER') {
     if (!this.selectedRecipient) {
-      this.selectedRecipient = this.docService.addRecipient('Recipient 1', 'recipient@example.com');
+      alert('Please add a recipient first using the "Add Recipient" button in the Recipients panel.');
+      return;
     }
 
     this.docService.addField({

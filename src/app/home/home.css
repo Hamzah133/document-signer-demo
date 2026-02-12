@@ -503,3 +503,130 @@
 .template-recipient-item .ghost-btn {
   padding: 8px 12px;
 }
+
+/* Saved Recipients */
+.saved-recipients-toggle {
+  width: 100%;
+  padding: 10px;
+  background: var(--bg-main);
+  color: var(--brand-primary);
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.saved-recipients-toggle:hover {
+  background: var(--bg-hover);
+}
+
+.saved-recipient-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.saved-recipient-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-light);
+  transition: all 0.2s;
+}
+
+.saved-recipient-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--brand-primary);
+}
+
+.saved-recipient-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.saved-recipient-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-recipient-email {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-recipient-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.saved-recipient-actions .add-btn,
+.saved-recipient-actions .remove-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.saved-recipient-actions .add-btn {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.saved-recipient-actions .add-btn:hover {
+  background: var(--brand-hover);
+}
+
+.saved-recipient-actions .remove-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.saved-recipient-actions .remove-btn:hover {
+  background: #dc2626;
+}
+
+.empty-saved-recipients {
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-main);
+  border: 1px dashed var(--border-light);
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+}

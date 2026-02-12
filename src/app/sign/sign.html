@@ -85,11 +85,11 @@
   <div class="success-card">
     <div class="success-icon">✓</div>
     <h2>Document Signed Successfully!</h2>
-    <p *ngIf="isMultiSign && signingProgress">
+    <p *ngIf="!document?.isTemplate && signingProgress">
       {{ signingProgress.totalRecipients - signingProgress.signedCount > 0 ? 'Waiting for other signers...' : 'All signers complete! Final PDF emailed.' }}
     </p>
-    <p *ngIf="!isMultiSign">You can download or close this tab now.</p>
-    <button (click)="downloadPdf()" class="download-btn">Download PDF</button>
+    <p *ngIf="document?.isTemplate">You can download the signed document below.</p>
+    <button *ngIf="document?.isTemplate" (click)="downloadPdf()" class="download-btn">Download PDF</button>
   </div>
 </div>
 
