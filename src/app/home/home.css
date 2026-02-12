@@ -77,15 +77,16 @@
   padding: 8px 16px;
   background: white;
   color: var(--brand-primary);
-  border: 1px solid var(--text-secondary);
+  border: 2px solid var(--brand-primary);
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .outline-btn:hover {
   background: var(--bg-hover);
+  border-color: var(--brand-hover);
 }
 
 .ghost-btn {
@@ -343,15 +344,7 @@
   margin-top: 24px;
 }
 
-.modal-actions button {
-  padding: 8px 16px;
-  border: 1px solid var(--border-light);
-  background: white;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.modal-actions button.primary {
+.modal-actions button.primary-btn {
   background: var(--brand-primary);
   color: white;
   border-color: var(--brand-primary);
