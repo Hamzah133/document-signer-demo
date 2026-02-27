@@ -130,7 +130,16 @@ export class LoginComponent {
     const action = this.isLogin ? this.authService.login(this.email, this.password) : this.authService.register(this.email, this.password);
     action.subscribe({
       next: () => this.router.navigate(['/dashboard']),
-      error: () => this.error = this.isLogin ? 'Invalid credentials' : 'Registration failed'
+      error: (err) => {
+        console.error('Auth error:', err);
+        if (err.error?.error) {
+          this.error = err.error.error;
+        } else if (err.status === 0) {
+          this.error = 'Connection failed - Backend not running?';
+        } else {
+          this.error = this.isLogin ? 'Invalid credentials' : 'Registration failed';
+        }
+      }
     });
   }
 }

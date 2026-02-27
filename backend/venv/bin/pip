@@ -1,4 +1,4 @@
-#!/home/hamzah/Desktop/Document_Signer/document-signer/backend/venv/bin/python3
+#!/home/hamzah/Desktop/Small_Projects/Document_Signer/document-signer/backend/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
