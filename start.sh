@@ -17,6 +17,11 @@ fi
 echo "Starting Flask backend on port 5000..."
 cd backend
 source venv/bin/activate
+
+# Run database migration
+echo "Migrating data to SQLite database..."
+python3 migrate_from_json.py
+
 python3 app.py &
 BACKEND_PID=$!
 cd ..
